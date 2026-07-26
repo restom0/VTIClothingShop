@@ -7,4 +7,6 @@ export const STORAGE_KEYS = {
   ORDER_ID: "order_id",
   SIDEBAR_ITEM: "sidebar_item",
   OPEN_ACCORDION: "open_accordion",
+  DEMO_MODE: "demo_mode",
+  DEMO_SESSION_BACKUP: "demo_session_backup",
 };

@@ -184,6 +184,7 @@ vi.mock("@heroicons/react/24/outline", () =>
     "ChevronDownIcon",
     "ChevronRightIcon",
     "ChevronUpIcon",
+    "CircleStackIcon",
     "MagnifyingGlassIcon",
     "TrashIcon",
     "XMarkIcon",

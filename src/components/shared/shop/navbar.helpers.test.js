@@ -63,7 +63,13 @@ describe("navbar helpers", () => {
 
     expect(getCartRoute(true)).toBe("/cart");
     expect(getCartRoute(false)).toBe("/login");
-    expect(getNavbarLabels(t).search).toBe("common.search");
+    expect(getNavbarLabels(t)).toMatchObject({
+      search: "common.search",
+      demoMode: "nav.demo_mode",
+      demoModeOn: "nav.demo_mode_on",
+      enableDemoMode: "nav.enable_demo_mode",
+      disableDemoMode: "nav.disable_demo_mode",
+    });
     expect(getCartLabels(t, 4)).toEqual({
       cart: "common.cart",
       itemCount: "common.items:4",

@@ -60,6 +60,10 @@ export const getNavbarLabels = (t) => ({
   mainAria: t("nav.main_aria"),
   openMenu: t("nav.open_menu"),
   closeMenu: t("nav.close_menu"),
+  demoMode: t("nav.demo_mode"),
+  demoModeOn: t("nav.demo_mode_on"),
+  enableDemoMode: t("nav.enable_demo_mode"),
+  disableDemoMode: t("nav.disable_demo_mode"),
 });
 
 /** Gets cart labels. */

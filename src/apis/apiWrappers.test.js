@@ -30,6 +30,7 @@ import { ProductApi } from "./product.api";
 import { StatApi } from "./statistic.api";
 import { userApi } from "./user.api";
 import { voucherApi } from "./voucher.api";
+import { STORAGE_KEYS } from "../constants/storage.constant";
 
 const apiModules = [
   accountApi,
@@ -159,6 +160,28 @@ describe("RTK Query API wrappers", () => {
     const result = await dispatchEndpoint(brandApi, "getBrands");
 
     expect(result.data.object[0]).toEqual({ id: 42, name: "live" });
+  });
+
+  it("uses demo read data immediately while demo mode is enabled", async () => {
+    storage.set(STORAGE_KEYS.DEMO_MODE, "enabled");
+
+    const result = await dispatchEndpoint(brandApi, "getBrands");
+
+    expect(result.data.object[0].name).toBe("VTI Basics");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("accepts demo mutations without touching the live API", async () => {
+    storage.set(STORAGE_KEYS.DEMO_MODE, "enabled");
+
+    const result = await dispatchEndpoint(OrderItemApi, "createOrderItem", {
+      order_id: 7001,
+      product_id: 1001,
+      quantity: 1,
+    });
+
+    expect(result.data).toMatchObject({ demo: true, statusCode: 200 });
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it.each([

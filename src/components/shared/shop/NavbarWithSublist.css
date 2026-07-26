@@ -7,3 +7,12 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+.nav-demo-toggle {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: center;
+  min-width: 5.75rem;
+  white-space: nowrap;
+}

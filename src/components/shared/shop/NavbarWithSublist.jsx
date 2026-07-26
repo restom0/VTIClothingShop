@@ -9,10 +9,16 @@ import { List, ListItem } from "@material-tailwind/react/components/List";
 import { Menu, MenuHandler, MenuList, MenuItem } from "@material-tailwind/react/components/Menu";
 import { Input } from "@material-tailwind/react/components/Input";
 import { Tooltip } from "@material-tailwind/react/components/Tooltip";
-import { ChevronDownIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  Bars3Icon,
+  ChevronDownIcon,
+  CircleStackIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { Divider } from "@mui/material";
 import { useGetBrandsQuery } from "../../../apis/brand.api";
 import { useGetCategoriesQuery } from "../../../apis/category.api";
@@ -23,6 +29,7 @@ import ThemeSwitcher from "../ThemeSwitcher";
 import SeasonSwitcher from "../SeasonSwitcher";
 import useDelayedLoading from "../../../hooks/useDelayedLoading.hook";
 import { useCurrency } from "../../../currency";
+import { useDemoMode } from "../../../demo/demoMode";
 import { useI18n } from "../../../i18n";
 import { ACTION_ROW_CLASSNAME } from "../../../styles/classNames";
 import { STORAGE_KEYS } from "../../../constants/storage.constant";
@@ -40,6 +47,30 @@ import {
 
 /** Checks whether auth token. */
 const hasAuthToken = () => Boolean(localStorage.getItem(STORAGE_KEYS.TOKEN));
+const RTK_QUERY_REDUCER_PATHS = [
+  "brandApi",
+  "categoryApi",
+  "userApi",
+  "importedProductApi",
+  "AccountApi",
+  "voucherApi",
+  "chatApi",
+  "CommentApi",
+  "InputSaleApi",
+  "onSaleProductApi",
+  "OrderApi",
+  "OrderItemApi",
+  "ProductApi",
+  "logApi",
+  "StatApi",
+];
+
+/** Resets cached RTK Query data after data source changes. */
+export const resetRtkQueryCache = (dispatch) => {
+  RTK_QUERY_REDUCER_PATHS.forEach((reducerPath) =>
+    dispatch({ type: `${reducerPath}/resetApiState` })
+  );
+};
 
 /** Checks whether desktop resize should close the mobile nav. */
 export const shouldCloseNavOnDesktop = (width) => width >= 960;
@@ -294,8 +325,53 @@ CartTooltip.propTypes = {
   cart: PropTypes.object,
 };
 
+/** Handles demo mode button. */
+const DemoModeButton = ({ fullWidth = false, isDemoMode, labels, onDemoModeToggle }) => {
+  const buttonLabel = isDemoMode ? labels.demoModeOn : labels.demoMode;
+  const ariaLabel = isDemoMode ? labels.disableDemoMode : labels.enableDemoMode;
+
+  return (
+    <Tooltip content={ariaLabel}>
+      <Button
+        type="button"
+        size="sm"
+        variant={isDemoMode ? "filled" : "outlined"}
+        color={isDemoMode ? "green" : "blue-gray"}
+        className="nav-demo-toggle normal-case"
+        onClick={onDemoModeToggle}
+        aria-pressed={isDemoMode}
+        aria-label={ariaLabel}
+        fullWidth={fullWidth}
+      >
+        <CircleStackIcon className="h-4 w-4" />
+        <span>{buttonLabel}</span>
+      </Button>
+    </Tooltip>
+  );
+};
+
+DemoModeButton.propTypes = {
+  fullWidth: PropTypes.bool,
+  isDemoMode: PropTypes.bool.isRequired,
+  labels: PropTypes.shape({
+    demoMode: PropTypes.string.isRequired,
+    demoModeOn: PropTypes.string.isRequired,
+    enableDemoMode: PropTypes.string.isRequired,
+    disableDemoMode: PropTypes.string.isRequired,
+  }).isRequired,
+  onDemoModeToggle: PropTypes.func.isRequired,
+};
+
 /** Handles navbar view. */
-export const NavbarView = ({ cart, labels, onCartClick, onToggleNav, openNav }) => (
+export const NavbarView = ({
+  cart,
+  isDemoMode,
+  labels,
+  onCartClick,
+  onDemoModeToggle,
+  onToggleNav,
+  openNav,
+}) => (
   <Navbar
     className="mx-auto max-w-screen-3xl rounded-none px-4 py-2 sticky top-0 z-50"
     aria-label={labels.mainAria}
@@ -311,6 +387,12 @@ export const NavbarView = ({ cart, labels, onCartClick, onToggleNav, openNav }) 
       </div>
 
       <div className="hidden items-center gap-3 lg:flex">
+        <DemoModeButton
+          isDemoMode={isDemoMode}
+          labels={labels}
+          onDemoModeToggle={onDemoModeToggle}
+        />
+
         <div className="relative flex w-60">
           <Input
             type="text"
@@ -370,6 +452,12 @@ export const NavbarView = ({ cart, labels, onCartClick, onToggleNav, openNav }) 
     <Collapse open={openNav} id="mobile-nav">
       <NavList />
       <div className={ACTION_ROW_CLASSNAME}>
+        <DemoModeButton
+          fullWidth
+          isDemoMode={isDemoMode}
+          labels={labels}
+          onDemoModeToggle={onDemoModeToggle}
+        />
         <SeasonSwitcher />
         <ThemeSwitcher />
         <LanguageSwitcher />
@@ -385,6 +473,7 @@ export const NavbarView = ({ cart, labels, onCartClick, onToggleNav, openNav }) 
 
 NavbarView.propTypes = {
   cart: PropTypes.object,
+  isDemoMode: PropTypes.bool.isRequired,
   labels: PropTypes.shape({
     search: PropTypes.string.isRequired,
     cart: PropTypes.string.isRequired,
@@ -392,8 +481,13 @@ NavbarView.propTypes = {
     mainAria: PropTypes.string.isRequired,
     openMenu: PropTypes.string.isRequired,
     closeMenu: PropTypes.string.isRequired,
+    demoMode: PropTypes.string.isRequired,
+    demoModeOn: PropTypes.string.isRequired,
+    enableDemoMode: PropTypes.string.isRequired,
+    disableDemoMode: PropTypes.string.isRequired,
   }).isRequired,
   onCartClick: PropTypes.func.isRequired,
+  onDemoModeToggle: PropTypes.func.isRequired,
   onToggleNav: PropTypes.func.isRequired,
   openNav: PropTypes.bool.isRequired,
 };
@@ -402,7 +496,9 @@ NavbarView.propTypes = {
 const NavbarWithSublist = () => {
   const [openNav, setOpenNav] = React.useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { t } = useI18n();
+  const [isDemoMode, setIsDemoMode] = useDemoMode();
 
   React.useEffect(() => {
     /** Closes value. */
@@ -421,12 +517,20 @@ const NavbarWithSublist = () => {
 
   /** Handles go to cart. */
   const goToCart = () => goToNavbarCart(navigate, hasAuthToken());
+  /** Handles demo mode toggle. */
+  const toggleDemoMode = () => {
+    const enabled = setIsDemoMode(!isDemoMode);
+    resetRtkQueryCache(dispatch);
+    if (enabled) navigate(ROUTES.PRODUCT);
+  };
 
   return (
     <NavbarView
       cart={cart}
+      isDemoMode={isDemoMode}
       labels={getNavbarLabels(t)}
       onCartClick={goToCart}
+      onDemoModeToggle={toggleDemoMode}
       onToggleNav={createToggleNavHandler(setOpenNav)}
       openNav={openNav}
     />
