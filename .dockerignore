@@ -1,0 +1,30 @@
+# Installed in the deps stage from package.json + yarn.lock
+node_modules/
+dist/
+coverage/
+.nyc_output/
+
+# VCS / IDE / tooling
+.git/
+.gitignore
+.github/
+.idea/
+.vscode/
+.aidex/
+.codegraph/
+
+# Tests and local tooling that the bundle does not need
+cypress/
+cypress.config.js
+*.log
+
+# Local env and docs
+.env
+.env.*
+!.env.example
+*.md
+qodana.yaml
+sonar-project.properties
+vercel.json
+Dockerfile
+.dockerignore

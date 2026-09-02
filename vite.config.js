@@ -47,7 +47,10 @@ const VENDOR_RULES = [
   [(id) => id.includes("@material-tailwind/react/node_modules/@floating-ui"), "vendor-floating-ui"],
   [(id) => id.includes("@material-tailwind/react/node_modules/"), "vendor-material-tailwind-utils"],
   [(id) => id.includes("@material-tailwind/react/"), "vendor-mt-core"],
-  [(id) => id.includes("/react/") || id.includes("/react-dom/") || id.includes("/scheduler/"), "vendor-react"],
+  [
+    (id) => id.includes("/react/") || id.includes("/react-dom/") || id.includes("/scheduler/"),
+    "vendor-react",
+  ],
   [(id) => id.includes("react-router-dom") || id.includes("@remix-run"), "vendor-router"],
   [(id) => id.includes("@reduxjs/") || id.includes("react-redux"), "vendor-state"],
   [(id) => id.includes("chart.js") || id.includes("react-chartjs-2"), "vendor-charts"],
@@ -55,10 +58,7 @@ const VENDOR_RULES = [
   [(id) => id.includes("sweetalert2"), "vendor-alerts"],
   [(id) => id.includes("@tanstack/"), "vendor-virtual"],
   [
-    (id) =>
-      ["/axios/", "/crypto-js/", "/date-fns/", "/dayjs/", "/formik/", "/yup/"].some((p) =>
-        id.includes(p)
-      ),
+    (id) => ["/axios/", "/crypto-js/", "/dayjs/", "/formik/", "/yup/"].some((p) => id.includes(p)),
     "vendor-utils",
   ],
 ];
@@ -115,10 +115,10 @@ export default defineConfig({
       // Quality gate: fail the build if coverage regresses below current levels.
       // Raise these as the i18n migration adds tests.
       thresholds: {
-        statements: 9,
-        branches: 6,
-        functions: 6,
-        lines: 9,
+        statements: 80,
+        branches: 65,
+        functions: 70,
+        lines: 85,
       },
     },
   },

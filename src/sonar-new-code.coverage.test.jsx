@@ -356,6 +356,8 @@ vi.mock("./apis/on_sale_product.api", () => ({
 }));
 vi.mock("./apis/order.api", () => ({
   useGetCartQuery: () => harness.apiState.cart,
+  useGetOrdersByUserQuery: () => harness.apiState.orders,
+  useDeleteOrderMutation: () => [harness.mutation],
 }));
 vi.mock("./apis/order_item.api", () => ({
   useCreateOrderItemMutation: () => [harness.mutation, { isLoading: false }],
@@ -472,6 +474,21 @@ const resetApiState = () => {
         ],
         total_price: 270000,
       },
+    },
+    error: null,
+    isLoading: false,
+  };
+  harness.apiState.orders = {
+    data: {
+      object: [
+        {
+          createdAt: "2026-07-18T00:00:00Z",
+          id: 1001,
+          orderCode: "ORD-1001",
+          paymentStatus: "NOT_CONFIRMED",
+          totalPrice: 270000,
+        },
+      ],
     },
     error: null,
     isLoading: false,

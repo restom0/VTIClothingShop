@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Option, Select } from "@material-tailwind/react/components/Select";
 import PropTypes from "prop-types";
 import ProductCard from "./ProductCard";
@@ -7,6 +7,7 @@ import VirtualizedGrid from "../VirtualizedGrid";
 import usePaginatedItems from "../../../hooks/usePaginatedItems.hook";
 import useResponsiveColumns from "../../../hooks/useResponsiveColumns.hook";
 import { useI18n } from "../../../i18n";
+import { sortShopProducts } from "../../../utils/shop_product.util";
 
 const PRODUCT_PAGE_SIZE = 24;
 const VIRTUAL_PRODUCT_ROW_ESTIMATE = 384;
@@ -28,9 +29,10 @@ const ShopList = memo(({ products }) => {
   const [filter, setFilter] = useState("new");
   const [active, setActive] = useState(1);
   const gridRef = useRef(null);
+  const sortedProducts = useMemo(() => sortShopProducts(products, filter), [filter, products]);
 
   const columns = useResponsiveColumns();
-  const { pageCount, pageItems } = usePaginatedItems(products, active, PRODUCT_PAGE_SIZE);
+  const { pageCount, pageItems } = usePaginatedItems(sortedProducts, active, PRODUCT_PAGE_SIZE);
 
   // Scroll về đầu danh sách mỗi khi chuyển trang
   useEffect(() => {
@@ -55,7 +57,7 @@ const ShopList = memo(({ products }) => {
         */}
         <div className="results-count" aria-live="polite" aria-atomic="true">
           <span className="sr-only">{t("shop.results_count_sr")}: </span>
-          {t("shop.results_count", { count: products.length })}
+          {t("shop.results_count", { count: sortedProducts.length })}
         </div>
 
         <div className="cluster-sm">

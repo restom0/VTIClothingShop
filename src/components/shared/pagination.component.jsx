@@ -5,15 +5,23 @@ import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { decrement, increment, setActive } from "../../features/slices/active.slice";
 /** Handles pagination. */
-const Pagination = ({ page }) => {
-  const active = useSelector((state) => state.active.value);
+const Pagination = ({ active: controlledActive, page, setActive: setControlledActive }) => {
+  const storedActive = useSelector((state) => state.active.value);
+  const active = controlledActive ?? storedActive;
   const dispatch = useDispatch();
+  const setPage = (nextPage) => {
+    if (setControlledActive) {
+      setControlledActive(nextPage);
+      return;
+    }
+    dispatch(setActive(nextPage));
+  };
   /** Gets item props. */
   const getItemProps = (index) => ({
     variant: active === index ? "filled" : "text",
     className: active === index ? "bg-[#006edc] text-white" : "",
     /** Handles click. */
-    onClick: () => dispatch(setActive(index)),
+    onClick: () => setPage(index),
   });
   return (
     <>
@@ -25,7 +33,9 @@ const Pagination = ({ page }) => {
               <Button
                 variant="text"
                 className="flex items-center gap-2"
-                onClick={() => dispatch(decrement())}
+                onClick={() =>
+                  setControlledActive ? setPage(Math.max(1, active - 1)) : dispatch(decrement())
+                }
                 disabled={active === 1}
               >
                 <ArrowLeftIcon strokeWidth={2} className="h-4 w-4" />
@@ -45,7 +55,9 @@ const Pagination = ({ page }) => {
               <Button
                 variant="text"
                 className="flex items-center gap-2"
-                onClick={() => dispatch(increment())}
+                onClick={() =>
+                  setControlledActive ? setPage(Math.min(page, active + 1)) : dispatch(increment())
+                }
                 disabled={active === page}
               >
                 <ArrowRightIcon strokeWidth={2} className="h-4 w-4" />
@@ -58,6 +70,8 @@ const Pagination = ({ page }) => {
   );
 };
 Pagination.propTypes = {
+  active: PropTypes.number,
   page: PropTypes.number.isRequired,
+  setActive: PropTypes.func,
 };
 export default Pagination;

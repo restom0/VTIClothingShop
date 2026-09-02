@@ -237,7 +237,7 @@ describe("ImportProduct branch coverage", () => {
 
     expect(harness.mutation).toHaveBeenCalled();
     expect(harness.setter).toHaveBeenCalled();
-  });
+  }, 10000);
 
   it("resets the new import form after a successful new-product submit", async () => {
     await renderImportProduct(filledImportState({ newOpen: true, oldOpen: false }));

@@ -1,5 +1,6 @@
 const SHOP_LOCAL_URL = "http://127.0.0.1:8080/";
-const SHOP_URL = "https://vti-clothing-shop.onrender.com/";
+const configuredShopUrl = import.meta.env?.VITE_SHOP_API_URL ?? SHOP_LOCAL_URL;
+const SHOP_URL = configuredShopUrl.endsWith("/") ? configuredShopUrl : `${configuredShopUrl}/`;
 const api_routes = {
   vouchers: "voucher/",
   products: "product/",

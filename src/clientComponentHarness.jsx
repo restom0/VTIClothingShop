@@ -456,7 +456,14 @@ vi.mock("./apis/input_on_sale.api", () => ({
   useUpdateInputSaleMutation: () => [harness.mutation, { isLoading: false }],
 }));
 vi.mock("./apis/order.api", () => ({
+  useDeleteOrderMutation: () => [harness.mutation, { isLoading: false }],
+  useGetCartQuery: () => harness.apiState.cart,
   useGetOrdersQuery: () => harness.apiState.orders,
+  useGetOrdersByUserQuery: () => harness.apiState.orders,
+}));
+vi.mock("./apis/on_sale_product.api", () => ({
+  useGetOnSaleProductQuery: () => harness.apiState.onSaleProduct,
+  useGetOnSaleProductsQuery: () => harness.apiState.onSaleProducts,
 }));
 vi.mock("./apis/product.api", () => ({
   useCreateProductMutation: () => [harness.mutation, { isLoading: false }],
@@ -614,6 +621,35 @@ beforeEach(() => {
     error: null,
     isLoading: false,
   };
+  harness.apiState.onSaleProducts = {
+    data: {
+      object: [
+        {
+          discount: 10,
+          id: 101,
+          product: {
+            id: 1,
+            imageUrl: "/runner-tee.png",
+            product: {
+              brand: { id: 1, name: "Nike" },
+              category: { id: 1, name: "Shirts" },
+              id: 1,
+              name: "Runner Tee",
+            },
+            stock: 12,
+          },
+          salePrice: 100000,
+        },
+      ],
+    },
+    error: null,
+    isLoading: false,
+  };
+  harness.apiState.onSaleProduct = {
+    data: { object: harness.apiState.onSaleProducts.data.object },
+    error: null,
+    isLoading: false,
+  };
   const importedProductRows = [
     {
       color_id: { color_code: "#111827", color_name: "Black", id: 1 },
@@ -726,6 +762,11 @@ beforeEach(() => {
         },
       ],
     },
+    error: null,
+    isLoading: false,
+  };
+  harness.apiState.cart = {
+    data: { object: { id: 1, orderItems: [], total_price: 0 } },
     error: null,
     isLoading: false,
   };

@@ -89,6 +89,7 @@ const dispatchEndpoint = async (api, endpoint, arg) => {
 beforeEach(() => {
   storage.clear();
   storage.set("token", "client-token");
+  import.meta.env.VITE_ENABLE_DUMMY_FALLBACK = "";
   globalThis.fetch = vi.fn(async () => okResponse());
 });
 
@@ -117,12 +118,12 @@ describe("RTK Query API wrappers", () => {
     ]);
   });
 
-  it("adds bearer tokens through prepareHeaders and falls back to dummy data for failed reads", async () => {
+  it("adds bearer tokens through prepareHeaders and surfaces failed reads by default", async () => {
     fetch.mockResolvedValue(errorResponse());
 
     const result = await dispatchEndpoint(brandApi, "getBrands");
 
-    expect(result.data.object[0].name).toBe("VTI Basics");
+    expect(result.error.status).toBe(503);
     expect(requestInfo().headers.authorization).toBe("Bearer client-token");
   });
 
@@ -141,18 +142,22 @@ describe("RTK Query API wrappers", () => {
     [StatApi, "getStat", undefined, "object"],
     [userApi, "getUserProfile", undefined, "object"],
     [voucherApi, "getVoucherByCode", "DEMO10", "object"],
-  ])("returns dummy data for %s.%s read failures", async (api, endpoint, arg, expectedKey) => {
-    fetch.mockResolvedValue(errorResponse());
+  ])(
+    "returns dummy data for %s.%s read failures when fallback flag is enabled",
+    async (api, endpoint, arg, expectedKey) => {
+      import.meta.env.VITE_ENABLE_DUMMY_FALLBACK = "true";
+      fetch.mockResolvedValue(errorResponse());
 
-    const result = await dispatchEndpoint(api, endpoint, arg);
+      const result = await dispatchEndpoint(api, endpoint, arg);
 
-    expect(result.error).toBeUndefined();
-    if (typeof expectedKey === "number") {
-      expect(result.data[expectedKey]).toBeTruthy();
-    } else {
-      expect(result.data).toHaveProperty(expectedKey);
+      expect(result.error).toBeUndefined();
+      if (typeof expectedKey === "number") {
+        expect(result.data[expectedKey]).toBeTruthy();
+      } else {
+        expect(result.data).toHaveProperty(expectedKey);
+      }
     }
-  });
+  );
 
   it("uses live read responses without replacing them with dummy data", async () => {
     fetch.mockResolvedValue(okResponse({ statusCode: 200, object: [{ id: 42, name: "live" }] }));
@@ -192,9 +197,8 @@ describe("RTK Query API wrappers", () => {
     ["SIZE", 1, "Everyday Cotton Tee"],
     ["MATERIAL", 1, "Everyday Cotton Tee"],
     ["ALL", undefined, "Everyday Cotton Tee"],
-  ])("filters imported-product fallback by %s", async (filter, id, expectedName) => {
-    fetch.mockResolvedValue(errorResponse());
-
+  ])("filters imported-product demo data by %s", async (filter, id, expectedName) => {
+    storage.set(STORAGE_KEYS.DEMO_MODE, "enabled");
     const result = await dispatchEndpoint(importedProductApi, "getImportedProduct", {
       filter,
       id,
@@ -213,9 +217,8 @@ describe("RTK Query API wrappers", () => {
     [OrderItemApi, "getOrderItemsByOrder", 7001, "quantity", 2],
     [voucherApi, "getAvailableVouchers", undefined, "code", "DEMO10"],
     [voucherApi, "getVoucher", "bad-id", "code", "DEMO10"],
-  ])("covers additional dummy fallback endpoint %s.%s", async (api, endpoint, arg, key, value) => {
-    fetch.mockResolvedValue(errorResponse());
-
+  ])("covers additional demo endpoint %s.%s", async (api, endpoint, arg, key, value) => {
+    storage.set(STORAGE_KEYS.DEMO_MODE, "enabled");
     const result = await dispatchEndpoint(api, endpoint, arg);
     const fallbackObject = Array.isArray(result.data.object)
       ? result.data.object[0]

@@ -4,6 +4,11 @@ import { getDemoMutationResponse, getDemoReadResponse } from "../mocks/demo_data
 
 /** Handles clone. */
 const clone = (value) => structuredClone(value);
+const isTruthyFlag = (value) => ["1", "true", "yes"].includes(String(value ?? "").toLowerCase());
+
+/** Checks whether dummy fallback is enabled outside demo mode. */
+export const isDummyFallbackEnabled = () =>
+  isTruthyFlag(import.meta.env?.VITE_ENABLE_DUMMY_FALLBACK);
 
 /** Checks whether read request. */
 const isReadRequest = (args) => {
@@ -27,7 +32,8 @@ export const createBaseQueryWithDummyFallback = (resource, options) => {
     }
 
     const result = await rawBaseQuery(args, api, extraOptions);
-    const fallbackResponse = isRead ? getDemoReadResponse(resource, api.endpoint, args) : null;
+    const fallbackResponse =
+      isRead && isDummyFallbackEnabled() ? getDemoReadResponse(resource, api.endpoint, args) : null;
 
     if (!result.error || !fallbackResponse) return result;
 

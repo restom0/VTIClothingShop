@@ -120,6 +120,13 @@ vi.mock("./currency", () => ({
     formatPrice: (value) => `${Number(value ?? 0).toLocaleString("en-US")} VND`,
   }),
 }));
+vi.mock("./apis/on_sale_product.api", () => ({
+  useGetOnSaleProductsQuery: () => ({
+    data: { object: [] },
+    error: null,
+    isLoading: false,
+  }),
+}));
 vi.mock("./components/shared/LazyImage", async () => {
   const ReactModule = await import("react");
 
